@@ -4,11 +4,12 @@ import matplotlib.pyplot as plt
 import numpy
 import cv2
 import time
+import glob
 from collections import deque
 
-def threshold( arg ):
+def threshold( arg, chipsize ):
 	chip = cv2.imread( arg, 1 )
-	chip = cv2.resize( chip, (200,200) )
+	chip = cv2.resize( chip, (chipsize, chipsize) )
 	gray = cv2.cvtColor( chip, cv2.COLOR_BGR2GRAY )
 	colMax = gray.shape[1]
 	rowMax = gray.shape[0]
@@ -73,11 +74,11 @@ def threshold( arg ):
 		row += 1
 
 	returnIm = "bin_" + arg
-	cv2.imwrite( returnIm, binary )
+	#cv2.imwrite( returnIm, binary )
 
 	ret, bin2 = cv2.threshold(gray,0,255,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
 	returnIm = "bin_lib_" + arg
-	cv2.imwrite( returnIm, bin2 )
+	#cv2.imwrite( returnIm, bin2 )
 	return binary;
 
 def fill( rm, fm, region_numbers ):
@@ -197,37 +198,43 @@ def execute( arg, dfs_or_bfs, ceil, floor, printOut, binary ):
 
 def elimbubbles( regionmap, fill_list, final ):
 	print( "Eliminating wells with bubbles..." )
+	
+	current_region=0
+	status=-1 # -1: unentered, 0: entered, 1: exited
+
 	toeliminate=[]
-	last_region = regionmap[1,1]
-	done_with_region=False
+	current_region = regionmap[1,1]
 	for y in range(2,regionmap.shape[0]):
 		for x in range(2,regionmap.shape[1]):
-			newregion = regionmap[x,y]
-			if done_with_region == False:
-				if newregion == -1:
-					done_with_region = True
-			else:	
-				if newregion == last_region:
-					if newregion != -1:
-						if newregion not in toeliminate:
-							toeliminate.append(newregion)	
-							if newregion in fill_list:
-								fill_list.remove(newregion)
-						string = "Region " + str(newregion) + " has bubbles"
-						done_with_region = False
-				elif newregion != -1:
-					last_region = newregion
-					done_with_region = False 
+		
+			temp = regionmap[x,y]
+			if temp == -1:
+				if status == 0:
+					status = 1
+			else:
+				if temp != current_region:
+					if status == -1:
+						status = 0
+						current_region = temp
+					if status == 0:
+						status = 1
+					elif status == 1:
+						current_region = temp
+						status = 0
 				else:
-					done_with_region = True
+					if status == 1:
+						toeliminate.append( temp )
+						if temp in fill_list:
+							fill_list.remove( temp )
 
+	print str(len(toeliminate)) + " bubbles found."
 	final_nobubbles = final - len(toeliminate)
 	#print( final_nobubbles )
 	final_map = numpy.zeros( regionmap.shape )
 	final_map = fill( regionmap, final_map, fill_list )	
 	return final_nobubbles, final_map
 
-def getThresh( arg, dfs_or_bfs_, binary ):
+def getThresh( arg, dfs_or_bfs , binary ):
 	results=[]
 	xlabels=[]
 	summ = 0;
@@ -285,11 +292,11 @@ def getThresh( arg, dfs_or_bfs_, binary ):
 	plt.savefig(name)
 	return thresh
 
-if __name__ == '__main__':
+def start( arg ):
 	start = time.time();
-	arg = sys.argv[1]
-	if len(sys.argv) > 2:
-		dfs_or_bfs = sys.argv[2]
+	dfs_or_bfs = ''
+	if len(sys.argv) > 1:
+		dfs_or_bfs = 'bfs'
 	else:
 		dfs_or_bfs = 'dfs'
 	
@@ -299,10 +306,18 @@ if __name__ == '__main__':
 	res, rm, fl, fi = execute( arg, dfs_or_bfs, 100, thresh, True, binary )
 
 	title = str(res) +"count_bubbles_" + arg
-	cv2.imwrite( title, fi )
+	#cv2.imwrite( title, fi )
 	res, rm = elimbubbles( rm, fl, res )
 	title = str(res) + "count_" + arg
 	print( "Seconds elapsed: " + str( time.time() - start ) );
 	print( "\n---> FINAL COUNT: " + str(res) + "\n" );
 	cv2.imwrite( title, rm )
+	return res
+
 	
+if __name__ == '__main__':
+	total_counted = 0
+	for file in glob.glob("*.png"):
+		total_counted += start( file ); 
+
+	print( "\nFINAL COUNT FOR ALL FILES: " + str( total_counted ) )
