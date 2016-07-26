@@ -15,7 +15,7 @@ var AppComponent = (function () {
     AppComponent = __decorate([
         core_1.Component({
             selector: 'my-app',
-            template: '<h1>ViVaScope</h1>'
+            template: '<h1>Microwell Array Analysis</h1>'
         }), 
         __metadata('design:paramtypes', [])
     ], AppComponent);

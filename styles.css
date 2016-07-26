@@ -1,3 +1,14 @@
+html {
+	background:#FFFFFF;
+}
+
+#ApplicationArea {
+
+	position:absolute;
+	margin-left:0px;	
+
+}
+
 h1 {
   color: #369;
   font-family: Arial, Helvetica, sans-serif;
