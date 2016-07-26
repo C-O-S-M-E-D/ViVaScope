@@ -289,7 +289,7 @@ def getThresh( arg, dfs_or_bfs , binary ):
 	plt.ylabel( 'Count' )
 	plt.xlabel( 'floor' )
 	name = "plot_" + arg
-	plt.savefig(name)
+	#plt.savefig(name)
 	return thresh
 
 def start( arg ):
@@ -300,7 +300,7 @@ def start( arg ):
 	else:
 		dfs_or_bfs = 'dfs'
 	
-	binary = threshold( arg );
+	binary = threshold( arg, 200 );
 	thresh = getThresh( arg, dfs_or_bfs, binary )	
 	
 	res, rm, fl, fi = execute( arg, dfs_or_bfs, 100, thresh, True, binary )
@@ -312,8 +312,8 @@ def start( arg ):
 	print( "Seconds elapsed: " + str( time.time() - start ) );
 	print( "\n---> FINAL COUNT: " + str(res) + "\n" );
 	cv2.imwrite( title, rm )
+	
 	return res
-
 	
 if __name__ == '__main__':
 	total_counted = 0
