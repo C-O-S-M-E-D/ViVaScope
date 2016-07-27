@@ -24,3 +24,19 @@
 5. For wells identified, extract sample pixel of that well region, place within a slot in `K`
 6. Do this for the top (# wells) likely well-like objects in the image taken.
 7. Perform Otsu and easy counting.
+
+
+## Problems with Region-Based
+
+1. On control chips (totally empty), OTSU binarizes completely different. Potential solution: analyze range of all found pixel intensities. If range is small, likely no wells glowing. Seems a bit rickety.
+
+2. Wells connected due to fluorescence.
+
+3. Needs cropped chip, or segmentation method.
+
+## Advantages with CNNs
+
+1. No need to crop image. Superclassifier for chips.
+2. Identifies wells specifically, only, whereas regions pick up any change in pixel intensity.
+3. Could avoid OTSU binarization which tends to be the culprit when wells are lost or specks are counted.
+ 
